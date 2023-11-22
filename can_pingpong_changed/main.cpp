@@ -80,6 +80,7 @@ bool createCanSocket(int& socketDescriptor) {
 void RXTX_CAN(int socketDescriptor) {
     int nbytes;
     struct can_frame frame;
+    // uint32_t canMessage[8];
     nbytes = read(socketDescriptor, &frame, sizeof(struct can_frame));
     if (nbytes < 0) {
         perror("Read");
@@ -93,10 +94,24 @@ void RXTX_CAN(int socketDescriptor) {
     printf("%d", frame.data[0]);
     std::cout << std::endl;
     frame.can_id = 0x300;
-    frame.data[0] = frame.data[0] * 0x02;
+    
+    //frame.data[0] = frame.data[0] * 0x02;
+    float canMessage = frame.data[0]/1000.0;
+    std::cout << "message in float: ";
+    printf("%f", canMessage);
+    std::cout << std::endl;
+
+    float canMessage2 = 2 * canMessage;
+    std::cout << "message in float 2: ";
+    printf("%f", canMessage2);
+    std::cout << std::endl;
+
+    //canMessage = 0x02 * canMessage;
+    frame.data[0] = canMessage2*1000.0;
     std::cout << "Frame data 0 modified: ";
     printf("%d", frame.data[0]);
     std::cout << std::endl;
+
     // Write modified CAN message back to Teensy
     write(socketDescriptor, &frame, sizeof(struct can_frame));
 }
