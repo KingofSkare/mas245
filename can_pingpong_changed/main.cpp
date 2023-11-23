@@ -1,4 +1,4 @@
-// K. M. Knausgård / MAS245 2017
+// K. M. Knausgård / I.J. Johansson / MAS245
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -11,9 +11,11 @@
 #include <iostream>
 #include <time.h>
 
+// Global constant and variable
 const char *ifname = "can0";
 int canSocketDescriptor;
 
+// Setting speed
 const double periodicTaskRate = 2.0; // Run task at 0.5 Hz.
 const int64_t periodicTaskDtNs = static_cast<int64_t>((1.0/periodicTaskRate) * 1.0e9);
 
@@ -30,18 +32,22 @@ void myPeriodicTask() {
 int main() {
     std::cout << "Periodic tick example for MAS245.." << std::endl;
 
+    // Create can socket
     if (!createCanSocket(canSocketDescriptor)) {
         std::cout << "Could not create CAN socket" << std::endl;
         return 0;
     }
 
+    // Running periodic tasks
     bool running = true;
     while(running) {
         struct timespec nextTimerDeadline;
         clock_gettime(CLOCK_MONOTONIC, &nextTimerDeadline);
 
+        // Execute periotic task
         myPeriodicTask();
 
+        // Calculating deadline for the next periotic task
         int64_t nextTvNsec = nextTimerDeadline.tv_nsec + periodicTaskDtNs;
         if (nextTvNsec >= 1000000000L) {
             nextTimerDeadline.tv_sec += nextTvNsec / 1000000000L;
@@ -54,6 +60,7 @@ int main() {
     return 0;
 }
 
+    // Create CAN socket and and bind it to the specific interface
 bool createCanSocket(int& socketDescriptor) {
     struct ifreq ifr;
 
@@ -62,6 +69,7 @@ bool createCanSocket(int& socketDescriptor) {
         return false;
     }
 
+    // Set interface for CAN socket
     strcpy(ifr.ifr_name, ifname);
     ioctl(socketDescriptor, SIOCGIFINDEX, &ifr);
 
@@ -69,6 +77,7 @@ bool createCanSocket(int& socketDescriptor) {
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
+    // Bind the socket to CAN interface
     if (bind(socketDescriptor, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         perror("Error in socket bind.");
         return false;
@@ -77,14 +86,18 @@ bool createCanSocket(int& socketDescriptor) {
     return true;
 }
 
+    // Function to read and write to CAN bus
 void RXTX_CAN(int socketDescriptor) {
     int nbytes;
     struct can_frame frame;
-    // uint32_t canMessage[8];
+    
+    // Read from CAN bus
     nbytes = read(socketDescriptor, &frame, sizeof(struct can_frame));
     if (nbytes < 0) {
         perror("Read");
     }
+
+    // Print the first byte from data and run calculations
     printf("0x%03X [%d]", frame.can_id, frame.can_dlc);
     for (int i = 0; i < frame.can_dlc; i++) {
         printf("%d", frame.data[i]);
@@ -102,7 +115,7 @@ void RXTX_CAN(int socketDescriptor) {
     std::cout << std::endl;
 
     float canMessage2 = 2 * canMessage;
-    std::cout << "message in float 2: ";
+    std::cout << "message in float*2: ";
     printf("%f", canMessage2);
     std::cout << std::endl;
 
