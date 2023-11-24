@@ -103,27 +103,23 @@ void RXTX_CAN(int socketDescriptor) {
         printf("%d", frame.data[i]);
     }
     printf("\r\n");
-    std::cout << "Frame data 0 original: ";
-    printf("%d", frame.data[0]);
-    std::cout << std::endl;
+    std::string original_number = "Frame data can0 original: ";
+    std::cout << original_number << static_cast<int>(frame.data[0]) << std::endl;
     frame.can_id = 0x300;
     
-    //frame.data[0] = frame.data[0] * 0x02;
+   
     float canMessage = frame.data[0]/1000.0;
-    std::cout << "message in float: ";
-    printf("%f", canMessage);
-    std::cout << std::endl;
+    std::string number_float = "message in float: ";
+    std::cout << number_float << canMessage <<std::endl;
 
     float canMessage2 = 2 * canMessage;
-    std::cout << "message in float*2: ";
-    printf("%f", canMessage2);
-    std::cout << std::endl;
+    std::string multiplication_of_float = "message in float*2: ";
 
-    //canMessage = 0x02 * canMessage;
+    std::cout << multiplication_of_float << canMessage2 << std::endl;
+
     frame.data[0] = canMessage2*1000.0;
-    std::cout << "Frame data 0 modified: ";
-    printf("%d", frame.data[0]);
-    std::cout << std::endl;
+    std::string number_out= "Frame data can0 modified: ";
+    std::cout << number_out << static_cast<int>(frame.data[0]) << std::endl;
 
     // Write modified CAN message back to Teensy
     write(socketDescriptor, &frame, sizeof(struct can_frame));
